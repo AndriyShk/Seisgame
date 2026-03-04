@@ -27,7 +27,7 @@ const CONFIG = {
         MAGMA_ORANGE: '#f4511e',
         MAGMA_YELLOW: '#ff9800',
         ACCENT_YELLOW: '#ffeb3b',
-        GLOW_ACCENT: '#ff3d00'
+        GLOW_ACCENT: '#ff00ff'
     }
 };
 
@@ -49,7 +49,7 @@ const player = {
     x: 0, y: 0,
     radius: CONFIG.PLAYER_RADIUS,
     vx: 0, speed: CONFIG.PLAYER_SPEED, 
-    angle: 0, colorOuter: '#ff3d00'
+    angle: 0, colorOuter: '#ff00ff'
 };
 
 const keys = { left: false, right: false };
@@ -58,10 +58,10 @@ const WALL_SEGMENT_HEIGHT = CONFIG.WALL_SEGMENT_HEIGHT;
 let wallScrollOffset = 0;
 
 const levels = [
-    { name: 'Земна кора', depth: 0,    bg: [17, 12, 8],     wall: [55, 38, 28] },
-    { name: 'Мантія',     depth: 1500, bg: [51, 15, 5],     wall: [100, 30, 9] },
-    { name: 'Зовнішнє ядро', depth: 3000, bg: [99, 21, 0],     wall: [170, 55, 6] },
-    { name: 'Внутрішнє ядро', depth: 4500, bg: [143, 33, 0],    wall: [225, 100, 0] },
+    { name: 'Earth\'s Crust', depth: 0,    bg: [17, 12, 8],     wall: [55, 38, 28] },
+    { name: 'Mantle',         depth: 1500, bg: [51, 15, 5],     wall: [100, 30, 9] },
+    { name: 'Outer Core',     depth: 3000, bg: [99, 21, 0],     wall: [170, 55, 6] },
+    { name: 'Inner Core',     depth: 4500, bg: [143, 33, 0],    wall: [225, 100, 0] },
 ];
 
 let curColorBg = levels[0].bg, curColorWall = levels[0].wall;
@@ -559,7 +559,7 @@ function collisionCheck() {
 }
 
 function spawnParticles(x, y, count, mult = 1, fixedColor = null) {
-    const colors = fixedColor ? [fixedColor] : ['#ffffff', '#ff9800', '#f4511e'];
+    const colors = fixedColor ? [fixedColor] : ['#ffffff', '#ff69b4', '#8a2be2', '#da70d6']; // White, Pink, Violet/Purple
     for (let i = 0; i < count; i++) particles.push({ x, y, vx: (Math.random()-0.5)*300*mult, vy: (Math.random()-0.5)*300*mult, life: 1.0, size: Math.random()*5+2, color: colors[Math.floor(Math.random()*colors.length)] });
 }
 
@@ -574,22 +574,24 @@ function updateDrawParticles(dt, fallSpeed) {
 
 function drawPlayer(dt) {
     if (!state.isRunning && state.time === 0 && !state.gameWon) return; 
+    // Shattering effect: hide player if we just crashed
+    if (!state.isRunning && state.time > 0 && !state.gameWon && !state.gameWin) return;
     
     ctx.save();
     ctx.globalAlpha = (state.testMode) ? 0.5 : 1.0; 
     ctx.translate(player.x, player.y);
-    let g = 20 + Math.abs(Math.sin(state.time*5 || 0))*10 + (state.score/CONFIG.MAX_DEPTH)*15;
+    let g = 30 + Math.abs(Math.sin(state.time*5 || 0))*15 + (state.score/CONFIG.MAX_DEPTH)*25;
     ctx.translate(state.gameWon ? 0 : Math.random()*2-1, state.gameWon ? 0 : Math.random()*2-1);
-    ctx.rotate(player.angle); ctx.shadowBlur = g; ctx.shadowColor = CONFIG.COLORS.GLOW_ACCENT;
+    ctx.rotate(player.angle); ctx.shadowBlur = g; ctx.shadowColor = '#ffffff'; // White/Bright glow
     let s = player.radius; ctx.fillStyle = '#b3728f'; ctx.beginPath(); ctx.moveTo(0, -s); ctx.lineTo(s*0.8, -s*0.3); ctx.lineTo(s*0.6, s*0.8); ctx.lineTo(-s*0.5, s*0.9); ctx.lineTo(-s*0.9, 0); ctx.closePath(); ctx.fill();
     ctx.shadowBlur = 0; ctx.fillStyle = '#e8bacb'; ctx.beginPath(); ctx.moveTo(0, -s); ctx.lineTo(-s*0.9, 0); ctx.lineTo(-s*0.3, -s*0.4); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#8a4f6a'; ctx.beginPath(); ctx.moveTo(0, -s); ctx.lineTo(s*0.8, -s*0.3); ctx.lineTo(s*0.2, 0); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(0, -s); ctx.lineTo(-s*0.3, -s*0.4); ctx.lineTo(0, s*0.2); ctx.lineTo(s*0.2, 0); ctx.closePath(); ctx.fill();
 
-    // Simplified tail logic using the same rock color
+    // Simplified tail logic using the same rock color - Pink/Purple trail
     if (Math.abs(player.vx) > 100) {
-        ctx.globalAlpha = 0.2;
-        ctx.fillStyle = '#b3728f';
+        ctx.globalAlpha = 0.25;
+        ctx.fillStyle = '#ff69b4';
         for(let i=1; i<4; i++) {
             ctx.save(); ctx.translate(-player.vx * 0.015 * i, 0); 
             ctx.beginPath(); ctx.moveTo(0, -s); ctx.lineTo(s*0.8, -s*0.3); ctx.lineTo(s*0.6, s*0.8); ctx.lineTo(-s*0.5, s*0.9); ctx.lineTo(-s*0.9, 0); ctx.closePath(); ctx.fill();
@@ -614,19 +616,20 @@ function gameWin() {
     state.isRunning = false; state.gameWon = true; 
     document.getElementById('game-container').animate([{backgroundColor: '#fff', opacity: 1}, {backgroundColor: 'transparent', opacity: 1}], {duration: 2000});
     setTimeout(() => { 
-        mainTitle.innerHTML = 'ПЛАНЕТУ<br><span class="subtitle glow-text">ПІДКОРЕНО!</span>'; 
-        gameMessage.innerHTML = "Ти дістався до самого розпеченого ядра!"; 
-        finalScoreEl.innerText = "ЯДРО (5000м)"; 
-        highScoreEl.innerText = "ЯДРО"; 
+        mainTitle.innerHTML = 'PLANET<br><span class="subtitle glow-text">CONQUERED!</span>'; 
+        gameMessage.innerHTML = "You reached the molten core!"; 
+        finalScoreEl.innerText = "CORE (5000m)"; 
+        highScoreEl.innerText = "CORE"; 
         finalScoreContainer.classList.remove('hidden'); 
-        startBtn.innerText = "ГРАТИ ЗНОВУ"; 
+        startBtn.innerText = "PLAY AGAIN"; 
         overlay.classList.remove('hidden'); 
         shareBtn.classList.remove('hidden'); 
     }, 1500);
 }
 
 function gameOver() {
-    state.isRunning = false; state.shake = 30; spawnParticles(player.x, player.y, 80, 2);
+    state.isRunning = false; state.shake = 30; 
+    spawnParticles(player.x, player.y, 200, 4); // Shatter effect - more particles
     document.getElementById('game-container').animate([{transform:'translate(15px,15px)'},{transform:'translate(-15px,-15px)'},{transform:'translate(0,0)'}], {duration:500});
     const fs = Math.floor(state.score); 
     let isNewRecord = false;
@@ -636,12 +639,12 @@ function gameOver() {
         isNewRecord = true;
     }
     setTimeout(() => { 
-        mainTitle.innerHTML = isNewRecord ? 'НОВИЙ<br><span class="subtitle glow-text">РЕКОРД!</span>' : 'СЕЙСМІЧНИЙ<br><span class="subtitle">Приборкувач Ядра</span>'; 
-        gameMessage.innerHTML = isNewRecord ? `Неймовірно! Ти досяг ${fs}м глибини.` : "Ти врізався в скелю."; 
-        finalScoreEl.innerText = fs; 
-        highScoreEl.innerText = state.highScore; 
+        mainTitle.innerHTML = isNewRecord ? 'NEW<br><span class="subtitle glow-text">RECORD!</span>' : 'SEISMIC<br><span class="subtitle">Core Tamer</span>'; 
+        gameMessage.innerHTML = isNewRecord ? `Incredible! You reached ${fs}m depth.` : "You crashed into a rock."; 
+        finalScoreEl.innerText = fs + "m"; 
+        highScoreEl.innerText = state.highScore + "m"; 
         finalScoreContainer.classList.remove('hidden'); 
-        startBtn.innerText = "СПРОБУВАТИ ЗНОВУ"; 
+        startBtn.innerText = "TRY AGAIN"; 
         overlay.classList.remove('hidden'); 
         shareBtn.classList.remove('hidden'); 
     }, 1200);
@@ -650,8 +653,8 @@ function gameOver() {
 function shareX() {
     const score = Math.floor(state.score);
     const text = score >= CONFIG.MAX_DEPTH ? 
-        `Я ПІДКОРИВ ЯДРО ЗЕМЛІ! 🌋 Глибина ${score}м у Seismic: Core Dodger! Чи зможеш ти краще?` :
-        `Мій результат: ${score}м у Seismic: Core Dodger! 🌋 Спробуй пройти до ядра планети!`;
+        `I CONQUERED THE EARTH'S CORE! 🌋 Depth ${score}m in Seismic: Core Dodger! Can you do better?` :
+        `My result: ${score}m in Seismic: Core Dodger! 🌋 Try to reach the planet's core!`;
     const url = window.location.hostname === 'localhost' || window.location.hostname === '' ? 'https://seismic-game.vercel.app' : window.location.href;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
 }
@@ -673,7 +676,7 @@ function gameLoop(timestamp) {
             const os = Math.floor(state.score); state.score += (20 * state.speedMultiplier) * dt; 
             const ns = Math.floor(state.score); scoreEl.innerText = ns;
             if (Math.floor(ns/100) > Math.floor(os/100)) { scoreEl.classList.remove('score-pop'); void scoreEl.offsetWidth; scoreEl.classList.add('score-pop'); }
-            if (state.score >= CONFIG.MAX_DEPTH) { state.score = CONFIG.MAX_DEPTH; scoreEl.innerText = "ЯДРО!"; state.coreSpawned = true; state.coreY = height + width; obstacles = []; }
+            if (state.score >= CONFIG.MAX_DEPTH) { state.score = CONFIG.MAX_DEPTH; scoreEl.innerText = "CORE!"; state.coreSpawned = true; state.coreY = height + width; obstacles = []; }
         }
         updateColorsAndLayer();
         let tvx = keys.left ? -player.speed : (keys.right ? player.speed : 0);
@@ -684,7 +687,6 @@ function gameLoop(timestamp) {
 
         let ss = 3 + (Math.abs(player.vx) / 150); player.angle += (player.vx < 0 ? -ss : ss) * dt;
         if (!state.coreSpawned || state.coreY > height*0.3) constrainPlayer();
-        if (Math.abs(player.vx) > 100 && Math.random() < 0.4) spawnParticles(player.x, player.y, 1, 0.2, CONFIG.COLORS.ACCENT_YELLOW);
         if (Math.random() < 0.3 && !state.gameWon) spawnParticles(player.x, player.y - player.radius+5, 2, 0.4);
         if (collisionCheck()) gameOver();
         

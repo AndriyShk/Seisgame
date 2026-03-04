@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Seismic: Core Dodger</title>
     <!-- SEO & Social Meta Tags -->
-    <meta name="description" content="Seismic: Core Dodger - захоплююча гра про подорож до ядра планети. Ухиляйся від перешкод та підрюй рекорди!">
+    <meta name="description" content="Seismic: Core Dodger - an exciting journey to the planet's core. Dodge obstacles and break records!">
     <meta property="og:title" content="Seismic: Core Dodger 🌋">
-    <meta property="og:description" content="Чи зможеш ти дістатися до самого ядра Землі? Ухиляйся від лави та скель у цій динамічній пригоді!">
+    <meta property="og:description" content="Can you reach the Earth's core? Dodge lava and rocks in this dynamic adventure!">
     <meta property="og:image" content="preview.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Seismic: Core Dodger 🌋">
-    <meta name="twitter:description" content="Реакція - твоя зброя. Спробуй підкорити ядро! Грай зараз!">
+    <meta name="twitter:description" content="Reaction is your weapon. Try to conquer the core! Play now!">
     <meta name="twitter:image" content="preview.png">
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌋</text></svg>">
@@ -26,24 +26,24 @@
         <!-- Score UI -->
         <div id="score-board">
             <div class="score-row">
-                <span id="depth-text">ГЛИБИНА:</span>
-                <span id="score-value">0</span><span id="score-unit">м</span>
+                <span id="depth-text">DEPTH:</span>
+                <span id="score-value">0</span><span id="score-unit">m</span>
             </div>
-            <div id="layer-name">ЗЕМНА КОРА</div>
+            <div id="layer-name">EARTH'S CRUST</div>
         </div>
         
         <!-- Menu/Overlay Screens -->
         <div id="overlay" class="screen flex-center">
             <div class="panel">
-                <h1 id="main-title" class="logo">СЕЙСМІЧНИЙ<br><span class="subtitle">Приборкувач Ядра</span></h1>
-                <p id="game-message">Дістанься ядра планети (5000м) та уникай перешкод!<br><br>Керування:<br>ПК: 🡨 🡪 (або A, D)<br>Мобільні: Кнопки на екрані або нахил</p>
+                <h1 id="main-title" class="logo">SEISMIC<br><span class="subtitle">Core Tamer</span></h1>
+                <p id="game-message">Reach the planet's core (5000m) and avoid obstacles!<br><br>Controls:<br>PC: 🡨 🡪 (or A, D)<br>Mobile: Screen buttons or tilt</p>
                 <div id="final-score-container" class="hidden">
-                    <p class="score-text">Рекорд: <span id="high-score">0</span>м</p>
-                    <p class="score-text big-score">Твій результат: <span id="final-score">0</span>м</p>
-                    <button id="share-btn" class="share-btn">ПОДІЛИТИСЯ В X</button>
+                    <p class="score-text">Record: <span id="high-score">0</span>m</p>
+                    <p class="score-text big-score">Your result: <span id="final-score">0</span>m</p>
+                    <button id="share-btn" class="share-btn">SHARE ON X</button>
                 </div>
-                <button id="start-btn">ПОЧАТИ ПАДІННЯ</button>
-                <button id="test-btn" class="secondary-btn">ТЕСТОВИЙ РЕЖИМ (БЕЗСМЕРТЯ)</button>
+                <button id="start-btn">START DESCENT</button>
+                <button id="test-btn" class="secondary-btn">TEST MODE (IMMORTAL)</button>
             </div>
         </div>
 
