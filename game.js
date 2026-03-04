@@ -171,7 +171,7 @@ function getWallOffset(yIndex) {
      const wave2 = Math.sin(yIndex * 0.1 - timeFactor * 0.7) * 40; // Overlapping smooth wave
      const jagged = (Math.random() - 0.5) * 10; 
      let depth = yIndex * 2, splitW = 0; // 1 segment = 2 units of depth
-     if (depth > 1200) {
+     if (depth > 1200 && width >= 600) {
          let sw = Math.sin(yIndex * 0.04 + state.time * 0.1); 
          if (sw > 0.85) splitW = Math.max(0, (sw - 0.85) * 1500 + (Math.random()-0.5)*30);
      }
@@ -639,8 +639,8 @@ function gameOver() {
         isNewRecord = true;
     }
     setTimeout(() => { 
-        mainTitle.innerHTML = isNewRecord ? 'NEW<br><span class="subtitle glow-text">RECORD!</span>' : 'SEISMIC<br><span class="subtitle">Core Tamer</span>'; 
-        gameMessage.innerHTML = isNewRecord ? `Incredible! You reached ${fs}m depth.` : "You crashed into a rock."; 
+        mainTitle.innerHTML = isNewRecord ? 'NEW RECORD!' : 'SEISMIC<br><span class="subtitle">Core Tamer</span>'; 
+        if (isNewRecord) mainTitle.classList.add('glow-text'); else mainTitle.classList.remove('glow-text');        gameMessage.innerHTML = isNewRecord ? `Incredible! You reached ${fs}m depth.` : "You crashed into a rock."; 
         finalScoreEl.innerText = fs + "m"; 
         highScoreEl.innerText = state.highScore + "m"; 
         finalScoreContainer.classList.remove('hidden'); 
