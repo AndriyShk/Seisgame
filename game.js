@@ -654,8 +654,8 @@ function gameOver() {
 function shareX() {
     const score = Math.floor(state.score);
     const text = score >= CONFIG.MAX_DEPTH ? 
-        `I CONQUERED THE EARTH'S CORE! 🌋 Depth ${score}m in Seismic: Core Dodger! Can you do better?` :
-        `My result: ${score}m in Seismic: Core Dodger! 🌋 Try to reach the planet's core!`;
+        `I CONQUERED THE EARTH'S CORE! 🌋 Depth ${score}m in Seismic: Core Dodger! Can you do better? @SeismicSyc` :
+        `My result: ${score}m in Seismic: Core Dodger! 🌋 Try to reach the planet's core! @SeismicSyc`;
     const url = window.location.hostname === 'localhost' || window.location.hostname === '' ? 'https://seismic-game.vercel.app' : window.location.href;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
 }
