@@ -433,9 +433,8 @@ function constrainPlayer() {
     if (seg && seg.splitW > 0) {
         const iL = seg.center - seg.splitW/2, iR = seg.center + seg.splitW/2;
         if (player.x + r > iL && player.x - r < iR) {
-            if (player.vx > 0) { player.x = iL - r; player.vx = 0; }
-            else if (player.vx < 0) { player.x = iR + r; player.vx = 0; }
-            else { player.x = player.x < seg.center ? iL - r : iR + r; }
+            if (player.x < seg.center) { player.x = iL - r; player.vx = 0; }
+            else { player.x = iR + r; player.vx = 0; }
             state.shake = Math.max(state.shake, 3);
         }
     }
