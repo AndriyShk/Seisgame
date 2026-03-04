@@ -40,7 +40,6 @@ const state = {
     gameWon: false,
     coreSpawned: false,
     coreY: 0,
-    testMode: false,
     shake: 0,
     lastLayer: ''
 };
@@ -177,9 +176,10 @@ function getWallOffset(yIndex) {
          if (sw > 0.85) splitW = Math.max(0, (sw - 0.85) * 1500 + (Math.random()-0.5)*30);
      }
      let depthShrink = Math.min(120, (depth / CONFIG.MAX_DEPTH) * 120); 
-     const minGap = Math.max(CONFIG.MIN_GAP_BASE + splitW * 1.5, tunnelWidthMax * 0.5 - depthShrink);
+     const minGap = Math.max(CONFIG.MIN_GAP_BASE + splitW * 1.5, tunnelWidthMax * 0.4 - depthShrink); // Reduced base gap factor
      const gap = minGap + Math.abs(Math.sin(yIndex * 0.08)) * 80;
-     const wander = Math.max(-(width/2 - tunnelWidthMax/2 - 20), Math.min(width/2 - tunnelWidthMax/2 - 20, wave1 + wave2));
+     const wanderLimit = Math.max(20, width/2 - tunnelWidthMax/2 - 40); // Ensure some rock is always visible
+     const wander = Math.max(-wanderLimit, Math.min(wanderLimit, wave1 + wave2));
      const centerLine = width/2 + wander + jagged;
      
      // --- ENDGAME VOID TRANSITION ---
@@ -543,7 +543,7 @@ function updateDrawObstacles(dt, fallSpeed) {
 
 function collisionCheck() {
     if (state.coreSpawned && player.y > state.coreY - width * 0.65) return gameWin();
-    if (state.testMode || state.time < 2.5) return false; // Early game invincibility
+    if (state.time < 2.5) return false; // Early game invincibility
     const pr = player.radius * 0.7;
     for (let obs of obstacles) {
         if (player.y + pr > obs.y - obs.thickness*0.2 && player.y - pr < obs.y + obs.thickness*1.2) {
@@ -578,7 +578,7 @@ function drawPlayer(dt) {
     if (!state.isRunning && state.time > 0 && !state.gameWon && !state.gameWin) return;
     
     ctx.save();
-    ctx.globalAlpha = (state.testMode) ? 0.5 : 1.0; 
+    ctx.globalAlpha = 1.0; 
     ctx.translate(player.x, player.y);
     let g = 30 + Math.abs(Math.sin(state.time*5 || 0))*15 + (state.score/CONFIG.MAX_DEPTH)*25;
     ctx.translate(state.gameWon ? 0 : Math.random()*2-1, state.gameWon ? 0 : Math.random()*2-1);
@@ -727,8 +727,8 @@ function gameLoop(timestamp) {
     requestAnimationFrame(gameLoop);
 }
 
-function startGame(test) { 
-    state.isRunning = true; state.score = 0; state.time = 0.001; state.speedMultiplier = 1; state.testMode = test; state.lastLayer = ''; 
+function startGame() { 
+    state.isRunning = true; state.score = 0; state.time = 0.001; state.speedMultiplier = 1; state.lastLayer = ''; 
     obstacles = []; particles = []; backgroundLines = []; player.vx = 0; player.angle = 0;
     state.gameWon = false; state.coreSpawned = false; 
     curColorBg = levels[0].bg; curColorWall = levels[0].wall;
@@ -738,7 +738,6 @@ function startGame(test) {
     shareBtn.classList.add('hidden'); 
 }
 
-startBtn.addEventListener('click', () => startGame(false));
-document.getElementById('test-btn').addEventListener('click', () => startGame(true));
+startBtn.addEventListener('click', () => startGame());
 shareBtn.addEventListener('click', shareX);
 resize(); initWalls(); requestAnimationFrame(gameLoop);
