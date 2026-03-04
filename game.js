@@ -640,7 +640,8 @@ function gameOver() {
     }
     setTimeout(() => { 
         mainTitle.innerHTML = isNewRecord ? 'NEW RECORD!' : 'SEISMIC<br><span class="subtitle">Core Tamer</span>'; 
-        if (isNewRecord) mainTitle.classList.add('glow-text'); else mainTitle.classList.remove('glow-text');        gameMessage.innerHTML = isNewRecord ? `Incredible! You reached ${fs}m depth.` : "You crashed into a rock."; 
+        if (isNewRecord) mainTitle.classList.add('glow-text'); else mainTitle.classList.remove('glow-text');
+        gameMessage.innerHTML = isNewRecord ? `Incredible! You reached ${fs}m depth.` : "You crashed into a rock."; 
         finalScoreEl.innerText = fs + "m"; 
         highScoreEl.innerText = state.highScore + "m"; 
         finalScoreContainer.classList.remove('hidden'); 
