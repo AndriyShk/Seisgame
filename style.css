@@ -87,6 +87,17 @@ canvas {
     font-weight: 700;
 }
 
+.gem-row {
+    font-size: 1.2rem;
+    color: #00e5ff;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+}
+
 .layer-flash {
     animation: layerFlash 0.6s ease-out;
 }

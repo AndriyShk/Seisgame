@@ -16,6 +16,7 @@ const hpBar = document.getElementById('hp-bar');
 const heatBar = document.getElementById('heat-bar');
 const progressFill = document.getElementById('progress-fill');
 const progressPointer = document.getElementById('progress-pointer');
+const gemCountEl = document.querySelector('#gem-count span');
 
 let width, height;
 let lastTime = 0;
@@ -48,6 +49,7 @@ const state = {
     lastLayer: '',
     health: 100,
     heat: 0,
+    gems: 0,
     lastDamageTime: 0
 };
 
@@ -62,6 +64,7 @@ const keys = { left: false, right: false };
 let obstacles = [], particles = [], backgroundLines = [], wallSegments = [];
 const WALL_SEGMENT_HEIGHT = CONFIG.WALL_SEGMENT_HEIGHT;
 let wallScrollOffset = 0;
+let bgParallaxOffset = 0;
 
 const levels = [
     { name: 'Earth\'s Crust', depth: 0,    bg: [17, 12, 8],     wall: [55, 38, 28] },
@@ -429,6 +432,40 @@ function updateDrawWalls(dt, fallSpeed) {
     ctx.stroke(); ctx.shadowBlur = 0;
 }
 
+function drawBackgroundLayers(dt, fallSpeed) {
+    if (!state.isRunning && !state.gameWon) return;
+    bgParallaxOffset += fallSpeed * 0.4 * dt;
+    const size = 300;
+    const startY = -(bgParallaxOffset % size);
+    
+    ctx.save();
+    // Subterranean "Vibe"
+    ctx.strokeStyle = arrToRgba(lighten(curColorBg, 20), 0.15);
+    ctx.lineWidth = 1;
+    for (let y = startY; y < height + size; y += size) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(width/3, y + size/2, width*0.6, y - size/2, width, y);
+        ctx.stroke();
+    }
+    ctx.restore();
+}
+
+function applyPlayerLighting() {
+    const r1 = player.radius;
+    const r2 = player.radius * 20;
+    const grad = ctx.createRadialGradient(player.x, player.y, r1, player.x, player.y, r2);
+    grad.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+    grad.addColorStop(0.5, 'rgba(255, 100, 0, 0.05)');
+    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+}
+
 function constrainPlayer() {
     const r = player.radius, wl = getWallX(player.y, true), wr = getWallX(player.y, false);
     if (player.x - r < wl) { player.x = wl + r; player.vx = 0; state.shake = Math.max(state.shake, 5); spawnParticles(player.x - r, player.y, 1, 0.5, arrToRgb(curColorWall)); }
@@ -578,12 +615,40 @@ function updateHUD() {
     
     // Color HP bar based on health
     if (state.health < 30) {
-        hpBar.classList.remove('hp-color');
-        hpBar.style.background = 'linear-gradient(to right, #ff1744, #f06292)';
+        if (hpBar) {
+            hpBar.classList.remove('hp-color');
+            hpBar.style.background = 'linear-gradient(to right, #ff1744, #f06292)';
+        }
     } else {
-        hpBar.style.background = '';
-        hpBar.classList.add('hp-color');
+        if (hpBar) {
+            hpBar.style.background = '';
+            hpBar.classList.add('hp-color');
+        }
     }
+    if (gemCountEl) gemCountEl.innerText = state.gems;
+}
+
+function collectGem(x, y) {
+    state.gems++;
+    spawnParticles(x, y, 15, 1, '#00e5ff');
+    state.shake = Math.max(state.shake, 2);
+}
+
+function checkGemCollision() {
+    const pr = player.radius + 20;
+    wallSegments.forEach((seg, i) => {
+        let py = i * WALL_SEGMENT_HEIGHT - wallScrollOffset;
+        seg.decos.forEach((d, dIdx) => {
+            if (d.type === 'gem' || d.type === 'ore_gold') {
+                let dy = py + d.yOffset;
+                let dist = Math.hypot(player.x - d.x, player.y - dy);
+                if (dist < pr) {
+                    collectGem(d.x, dy);
+                    seg.decos.splice(dIdx, 1);
+                }
+            }
+        });
+    });
 }
 
 function takeDamage(amount, type = 'impact') {
@@ -600,6 +665,7 @@ function takeDamage(amount, type = 'impact') {
     
     if (state.health <= 0) gameOver();
 }
+
 
 function spawnParticles(x, y, count, mult = 1, fixedColor = null) {
     const colors = fixedColor ? [fixedColor] : ['#ffffff', '#ff69b4', '#8a2be2', '#da70d6']; // White, Pink, Violet/Purple
@@ -750,6 +816,7 @@ function gameLoop(timestamp) {
             // Push player away from obstacles slightly
             player.vx *= -0.5;
         }
+        checkGemCollision();
         
         // Final Core Descent Logic
         if (state.coreSpawned) {
@@ -767,10 +834,12 @@ function gameLoop(timestamp) {
         drawCore(dt, 0); updateDrawWalls(0, 0);
         layerEl.style.color = '#fff';
     } else {
+        drawBackgroundLayers(step, fs);
         updateDrawWalls(step, fs); 
         updateDrawBgLines(step, fs); 
         drawCore(step, fs); 
         updateDrawObstacles(step, fs); 
+        applyPlayerLighting();
         updateDrawParticles(dt, fs); 
         
         // Darkness Vignette
