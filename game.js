@@ -12,6 +12,10 @@ const highScoreEl = document.getElementById('high-score');
 const gameMessage = document.getElementById('game-message');
 const mainTitle = document.getElementById('main-title');
 const shareBtn = document.getElementById('share-btn');
+const hpBar = document.getElementById('hp-bar');
+const heatBar = document.getElementById('heat-bar');
+const progressFill = document.getElementById('progress-fill');
+const progressPointer = document.getElementById('progress-pointer');
 
 let width, height;
 let lastTime = 0;
@@ -41,7 +45,10 @@ const state = {
     coreSpawned: false,
     coreY: 0,
     shake: 0,
-    lastLayer: ''
+    lastLayer: '',
+    health: 100,
+    heat: 0,
+    lastDamageTime: 0
 };
 
 const player = {
@@ -557,6 +564,43 @@ function collisionCheck() {
     return false;
 }
 
+function updateHUD() {
+    if (!state.isRunning && !state.gameWon) return;
+    
+    // Update Progress Bar
+    const progress = Math.min(100, (state.score / CONFIG.MAX_DEPTH) * 100);
+    if (progressFill) progressFill.style.height = `${progress}%`;
+    if (progressPointer) progressPointer.style.top = `${100 - progress}%`;
+    
+    // Update Bars
+    if (hpBar) hpBar.style.width = `${state.health}%`;
+    if (heatBar) heatBar.style.width = `${state.heat}%`;
+    
+    // Color HP bar based on health
+    if (state.health < 30) {
+        hpBar.classList.remove('hp-color');
+        hpBar.style.background = 'linear-gradient(to right, #ff1744, #f06292)';
+    } else {
+        hpBar.style.background = '';
+        hpBar.classList.add('hp-color');
+    }
+}
+
+function takeDamage(amount, type = 'impact') {
+    if (state.time - state.lastDamageTime < 0.2) return; // Inverse I-frames
+    state.health = Math.max(0, state.health - amount);
+    state.lastDamageTime = state.time;
+    state.shake = Math.max(state.shake, amount * 0.5);
+    
+    if (type === 'impact') {
+        spawnParticles(player.x, player.y, 10, 2, '#ffffff');
+    } else {
+        spawnParticles(player.x, player.y, 5, 1, '#ffeb3b');
+    }
+    
+    if (state.health <= 0) gameOver();
+}
+
 function spawnParticles(x, y, count, mult = 1, fixedColor = null) {
     const colors = fixedColor ? [fixedColor] : ['#ffffff', '#ff69b4', '#8a2be2', '#da70d6']; // White, Pink, Violet/Purple
     for (let i = 0; i < count; i++) particles.push({ x, y, vx: (Math.random()-0.5)*300*mult, vy: (Math.random()-0.5)*300*mult, life: 1.0, size: Math.random()*5+2, color: colors[Math.floor(Math.random()*colors.length)] });
@@ -679,6 +723,18 @@ function gameLoop(timestamp) {
             if (state.score >= CONFIG.MAX_DEPTH) { state.score = CONFIG.MAX_DEPTH; scoreEl.innerText = "CORE!"; state.coreSpawned = true; state.coreY = height + width; obstacles = []; }
         }
         updateColorsAndLayer();
+        updateHUD();
+        
+        // Heat Simulation
+        if (state.score > 2000) {
+            let heatGain = (state.score / CONFIG.MAX_DEPTH) * 1.5 * dt;
+            state.heat = Math.min(100, state.heat + heatGain);
+        }
+        
+        if (state.heat >= 100) {
+            takeDamage(5 * dt, 'heat');
+        }
+
         let tvx = keys.left ? -player.speed : (keys.right ? player.speed : 0);
         player.vx += (tvx - player.vx) * 12 * dt; player.x += player.vx * dt;
         
@@ -688,7 +744,12 @@ function gameLoop(timestamp) {
         let ss = 3 + (Math.abs(player.vx) / 150); player.angle += (player.vx < 0 ? -ss : ss) * dt;
         if (!state.coreSpawned || state.coreY > height*0.3) constrainPlayer();
         if (Math.random() < 0.3 && !state.gameWon) spawnParticles(player.x, player.y - player.radius+5, 2, 0.4);
-        if (collisionCheck()) gameOver();
+        
+        if (collisionCheck()) {
+            takeDamage(20);
+            // Push player away from obstacles slightly
+            player.vx *= -0.5;
+        }
         
         // Final Core Descent Logic
         if (state.coreSpawned) {
@@ -731,6 +792,7 @@ function startGame() {
     state.isRunning = true; state.score = 0; state.time = 0.001; state.speedMultiplier = 1; state.lastLayer = ''; 
     obstacles = []; particles = []; backgroundLines = []; player.vx = 0; player.angle = 0;
     state.gameWon = false; state.coreSpawned = false; 
+    state.health = 100; state.heat = 0;
     curColorBg = levels[0].bg; curColorWall = levels[0].wall;
     resize(); initWalls(); updateColorsAndLayer(); 
     player.x = width/2; player.y = height*0.15;

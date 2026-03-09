@@ -279,4 +279,113 @@ button:active {
         font-size: 1rem;
         letter-spacing: 2px;
     }
+    #bars-container {
+        width: 140px;
+    }
 }
+
+/* NEW HUD ELEMENTS */
+#bars-container {
+    margin-top: 15px;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.bar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bar-label {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.bar-bg {
+    width: 100%;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.bar-fill {
+    height: 100%;
+    width: 100%;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px currentColor;
+}
+
+.hp-color {
+    background: linear-gradient(to right, #00e676, #69f0ae);
+    color: #69f0ae;
+}
+
+.heat-color {
+    background: linear-gradient(to right, #ff9100, #ffea00);
+    color: #ffea00;
+}
+
+/* Vertical Progress Bar */
+#progress-indicator {
+    position: absolute;
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.progress-track {
+    width: 4px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+#progress-fill {
+    width: 100%;
+    height: 0%;
+    background: var(--magma-orange);
+    position: absolute;
+    bottom: 0;
+    box-shadow: 0 0 15px var(--magma-orange);
+}
+
+#progress-pointer {
+    position: absolute;
+    left: -15px;
+    color: var(--magma-yellow);
+    font-size: 1.2rem;
+    transition: top 0.3s ease;
+    top: 0%;
+    text-shadow: 0 0 10px var(--magma-yellow);
+}
+
+.progress-labels {
+    position: absolute;
+    height: 100%;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 700;
+}
+
