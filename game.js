@@ -22,12 +22,12 @@ let width, height;
 let lastTime = 0;
 const CONFIG = {
     MAX_DEPTH: 5000,
-    BASE_FALL_SPEED: 400,
-    PLAYER_SPEED: 550,
+    BASE_FALL_SPEED: 450,
+    PLAYER_SPEED: 600,
     PLAYER_RADIUS: 18,
     WALL_SEGMENT_HEIGHT: 40,
-    TUNNEL_WIDTH_MAX: 500,
-    MIN_GAP_BASE: 150,
+    TUNNEL_WIDTH_MAX: 450,
+    MIN_GAP_BASE: 140,
     COLORS: {
         MAGMA_ORANGE: '#f4511e',
         MAGMA_YELLOW: '#ff9800',
@@ -185,8 +185,8 @@ function getWallOffset(yIndex) {
          let sw = Math.sin(yIndex * 0.04 + state.time * 0.1); 
          if (sw > 0.85) splitW = Math.max(0, (sw - 0.85) * 1500 + (Math.random()-0.5)*30);
      }
-     let depthShrink = Math.min(120, (depth / CONFIG.MAX_DEPTH) * 120); 
-     const minGap = Math.max(CONFIG.MIN_GAP_BASE + splitW * 1.5, tunnelWidthMax * 0.4 - depthShrink); // Reduced base gap factor
+     let depthShrink = Math.min(180, (depth / CONFIG.MAX_DEPTH) * 180); 
+     const minGap = Math.max(CONFIG.MIN_GAP_BASE + splitW * 1.5, tunnelWidthMax * 0.4 - depthShrink); 
      const gap = minGap + Math.abs(Math.sin(yIndex * 0.08)) * 80;
      const wanderLimit = Math.max(20, width/2 - tunnelWidthMax/2 - 40); // Ensure some rock is always visible
      const wander = Math.max(-wanderLimit, Math.min(wanderLimit, wave1 + wave2));
@@ -607,7 +607,7 @@ function updateHUD() {
     // Update Progress Bar
     const progress = Math.min(100, (state.score / CONFIG.MAX_DEPTH) * 100);
     if (progressFill) progressFill.style.height = `${progress}%`;
-    if (progressPointer) progressPointer.style.top = `${100 - progress}%`;
+    if (progressPointer) progressPointer.style.top = `${progress}%`;
     
     // Update Bars
     if (hpBar) hpBar.style.width = `${state.health}%`;
@@ -652,9 +652,10 @@ function checkGemCollision() {
 }
 
 function takeDamage(amount, type = 'impact') {
-    if (state.time - state.lastDamageTime < 0.2) return; // Inverse I-frames
+    if (type === 'impact' && state.time - state.lastDamageTime < 0.2) return; 
+    
     state.health = Math.max(0, state.health - amount);
-    state.lastDamageTime = state.time;
+    if (type === 'impact') state.lastDamageTime = state.time;
     state.shake = Math.max(state.shake, amount * 0.5);
     
     if (type === 'impact') {
@@ -798,7 +799,16 @@ function gameLoop(timestamp) {
         }
         
         if (state.heat >= 100) {
-            takeDamage(5 * dt, 'heat');
+            takeDamage(15 * dt, 'heat');
+        }
+        
+        // Auto-Repair using Gems
+        if (state.health < 100 && state.gems > 0 && state.heat < 80) {
+            let repairRate = 5 * dt; // Restore 5 HP per second
+            state.health = Math.min(100, state.health + repairRate);
+            if (state.time % 2 < 0.1) { // Consume 1 gem per 2 seconds of repair
+               state.gems = Math.max(0, state.gems - (Math.random() < 0.3 ? 1 : 0));
+            }
         }
 
         let tvx = keys.left ? -player.speed : (keys.right ? player.speed : 0);
